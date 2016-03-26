@@ -1,0 +1,76 @@
+extends layout
+
+block content
+	#qtr-wrapper
+		.container
+			div(class="btn-group qtr-group" data-toggle="buttons")
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="qtr-all"> ALL
+				label(class="btn btn-primary")
+					<input type="checkbox" id="qtr1"> QTR-1
+				label(class="btn btn-primary")
+					<input type="checkbox" id="qtr2"> QTR-2
+				label(class="btn btn-primary")
+					<input type="checkbox" id="qtr3"> QTR-3
+				label(class="btn btn-primary")
+					<input type="checkbox" id="qtr4"> QTR-4
+			br
+			div(class="btn-group month-group" data-toggle="buttons")
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="jan" value=1> Jan
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="feb" value=2> Feb
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="mar" value=3> Mar
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="apr" value=4> Apr
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="may" value=5> May
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="jun" value=6> Jun
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="jul" value=7> Jul
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="aug" value=8> Aug
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="sept" value=9> Sept
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="oct" value=10> Oct
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="nov" value=11> Nov
+				label(class="btn btn-primary active")
+					<input type="checkbox" id="dec" value=12> Dec
+	#year-wrapper
+		.container
+			#year-btn-wrapper
+				div(class="btn-group btn-group-vertical year-group" data-toggle="buttons")
+					label(class="btn btn-primary")
+						<input type="checkbox" id="year-all">ALL
+					each year,index in years
+						// Set the most recent year as active
+						- var activeClass = index == 0 ? ' active' : ''
+						label(class="btn btn-primary" + activeClass)
+							input(type="checkbox" id=year)
+							| #{year}
+	.container
+		#canvas-div
+			button(class="btn btn-lg btn-warning loadingbtn" style="text-align: center")
+				span(class="glyphicon glyphicon-refresh glyphicon-refresh-animate")
+				| Loading...
+			#pie-div
+			#bar-div
+				#barselection-div
+				#barcanvas-div
+			#circlepack-div
+		#details-div
+			.container
+				#bubble-button-wrapper
+					div(class="btn-group bubble-group" data-toggle="buttons")
+						label(class="btn btn-default active")
+							<input type="radio" id="revenue" value="revenue" autocomplete="off"> Revenue
+						label(class="btn btn-default")
+							<input type="radio" id="volume" value="volume"> Volume
+						label(class="btn btn-default")
+							<input type="radio" id="roi" value="cost"> Cost
+			<br />	
+			#bubble-div

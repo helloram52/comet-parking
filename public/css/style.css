@@ -1,0 +1,315 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+	color: #00B7FF;
+	outline: none;
+}
+
+.container .year-group .active,
+.container .month-group .active,
+.container .qtr-group .active {
+	background-color : green
+}
+
+
+
+/*
+ * CSS for year and quarter button groups
+ */
+#year-wrapper {
+/*
+	border-right-width: 1px;
+	border-right-style: solid;
+	border-right-color: black;
+*/
+	height: 300px;
+	width: 6%;
+	float: left;
+}
+
+#year-btn-wrapper {
+	overflow-y: scroll;
+	height: 200px;
+	width: 80px;
+}
+
+#qtr-wrapper {
+	text-align:  center;
+/* 
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: black;
+*/
+}
+
+#bubble-button-wrapper {
+	text-align: center;
+}
+
+/*
+ * CSS for loading indicator
+ */
+
+.loadingbtn {
+	display:-webkit-box;
+	-webkit-box-pack:center;
+	-webkit-box-align:center;
+	float: none;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.glyphicon-refresh-animate {
+	-animation: spin .7s infinite linear;
+	-webkit-animation: spin .7s infinite linear;
+}
+
+@-webkit-keyframes spin2 {
+	from { -webkit-transform: rotate(0deg);}
+	to { -webkit-transform: rotate(360deg);}
+}
+
+@keyframes spin {
+	from { transform: scale(1) rotate(0deg);}
+	to { transform: scale(1) rotate(360deg);}
+}
+
+/*
+ * The below contain css for the visualization area.
+ */
+
+#canvas-div {
+/*
+	outline: 1px solid black;
+	background: transparent;
+*/
+	height: 400px;
+	width: 90%;
+	position: relative;
+}
+
+
+#pie-div {
+/*
+	outline: 1px solid black;
+	background: transparent;
+*/
+	height: 300px;
+	width: 25%;
+	float:left;
+	position: relative;
+	margin-top: 30px;
+}
+
+#bar-div {
+/*
+	outline: 1px solid black;
+	background: transparent;
+*/
+	height: 400px;
+	width: 25%;
+	float: left;
+	position: relative;
+	margin-top: 30px;
+	margin-left: 30px;
+}
+
+#circlepack-div {
+/*
+	outline: 1px solid black;
+	background: transparent;
+*/
+	height: 400px;
+	width: 25%;
+	float: right;
+	position: relative;
+	margin-top: 30px;
+}
+
+#details-div {
+	width: 100%;
+	float:left;
+}
+
+#bubble-div {
+
+}
+
+svg {
+	font: 10px sans-serif;
+	display: block;
+}
+
+.d3-tip {
+	line-height: 1;
+	font-weight: normal;
+	padding: 12px;
+	background: rgba(, 0, 0, 0.8);
+	color: #000;
+	border-radius: 2px;
+	opacity: 0.5;
+	z-index: 9999;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+	box-sizing: border-box;
+	display: inline;
+	font-size: 5px;
+	width: 100%;
+	line-height: 1;
+	color: rgba(0, 0, 0, 0.8);
+	content: "\25BC";
+	position: absolute;
+	text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+	margin: -1px 0 0 0;
+	top: 100%;
+	left: 0;
+}
+
+.bar {
+	fill: steelblue;
+}
+
+.bar:hover {
+	fill: orangered ;
+}
+
+.x.axis path {
+	display: none;
+}
+
+.axis path,
+.axis line {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}
+
+/*
+ * CSS for Pie Chart
+ */
+.pie-tooltip {
+	border-collapse: collapse;
+	border-spacing: 0;
+	background-color: #fff;
+	empty-cells: show;
+	-webkit-box-shadow: 7px 7px 12px -9px #777777;
+	-moz-box-shadow: 7px 7px 12px -9px #777777;
+	box-shadow: 7px 7px 12px -9px #777777;
+	opacity: 0.9;
+}
+
+.pie-tooltip th {
+	background-color: #aaa;
+	font-size: 12px;
+	padding: 2px 5px;
+	text-align: left;
+	color: #FFF;
+}
+
+.pie-tooltip tr {
+	border: 1px solid #CCC;
+}
+
+.pie-tooltip td {
+	font-size: 13px;
+	padding: 3px 6px;
+	background-color: #fff;
+	border-left: 1px dotted #999;
+}
+
+.pie-tooltip td.value {
+	text-align: right;
+}
+
+/*
+ * CSS for Bar Chart
+ */
+
+.bar.selected {
+	fill: maroon;
+}
+
+
+/*
+ * CSS for circle Pack Chart
+ */
+.bubble {
+	fill-opacity: .5;
+	/*stroke: #fff;*/
+	stroke: steelblue;
+	stroke-width: .5px;
+	fill: brown;
+}
+
+.bubble :hover {
+	stroke: blue;
+}
+
+.node {
+  cursor: pointer;
+}
+
+.node:hover {
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.node--leaf {
+  fill: white;
+}
+
+.bubble-label {
+  font: 15px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-anchor: text;
+  /*middle-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff; */
+}
+
+.bubble-label,
+.node--root,
+.node--leaf {
+  pointer-events: none;
+}
+
+/*
+* CSS for bubble chart
+*/
+
+.bubbles-circle {
+	cursor: pointer;
+	stroke: #555;
+	stroke-width: 2px;
+	opacity: .8;
+}
+
+.bubbles-circle:hover {
+	stroke:#000;
+	opacity:1;
+}
+
+.bubbles-label {
+	font-size: 20px;
+}
+
+.color-legend {
+	min-height: 100%; 
+	min-height: 100vh; 
+
+	display: flex;
+	align-items: center;
+
+	height:34px; font-weight:bold; text-align:center; color:white;
+	text-shadow: 2px 2px #333;
+}
