@@ -13,14 +13,13 @@ def draw_rectangle(event, x, y, flags, param):
     elif event == cv2.EVENT_RBUTTONDOWN:
         coordList['refX'] = x
         coordList['refY'] = y
-img = cv2.imread("resizedimage.png", 1)
+
+img = cv2.imread("public/dataset/resizedimage.png", 1)
 cv2.imshow('carlot', img)
 cv2.setMouseCallback('carlot', draw_rectangle)
 key = cv2.waitKey()
-print coordList
 f = open('jsonCoords', 'w')
 jsonDump = json.dumps(coordList) 
 f.write(str(jsonDump))
 cv2.destroyAllWindows()
-
 
