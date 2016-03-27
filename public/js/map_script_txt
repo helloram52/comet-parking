@@ -1,0 +1,31 @@
+
+    var map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 12,
+      center: new google.maps.LatLng(32.983307, -96.747372),
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
+
+    
+marker = new google.maps.Marker({
+        position: new google.maps.LatLng(32.983307, -96.747372),
+        map: map,
+        draggable: true,
+        showContent: true,
+        content: '<h5>Choose a pickup location</h5>',
+});
+      
+function dragEnded() { console.log('marker dragged' + this.getPosition()); }
+google.maps.event.addListener(marker, 'dragend', dragEnded );
+
+var infowindow = new google.maps.InfoWindow();
+function showInfoWindow() {
+          infowindow.setContent("one", "two");
+          infowindow.open(map, marker);
+}
+google.maps.event.addListener(marker, 'click', showInfoWindow);
+
+
+==============
+
+This is the jsfiddle url:
+http://jsfiddle.net/jalbertbowdenii/pGBZD/
