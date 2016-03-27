@@ -11,7 +11,7 @@ from collections import defaultdict
 publidDir = os.path.abspath( os.getcwd() + '/public' )
 imagePath = publidDir + "/dataset/1.png"
 jsonConfigFile = publidDir + "/data/coordinates1.json"
-csvFilePath = publidDir + "/data/metrics1.csv"
+csvFilePath = publidDir + "/data/metrics3.csv"
 threshold = {
 	0 :  0.355,
 	1 : 3.3,

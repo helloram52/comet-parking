@@ -3,8 +3,8 @@ import cv2
 import json, os
 
 publidDir = os.path.abspath( os.getcwd() + '/public' )
-imagePath = publidDir + "/dataset/1.png"
-jsonConfigFile = publidDir + "/data/coordinates1.json"
+imagePath = publidDir + "/dataset/3.png"
+jsonConfigFile = publidDir + "/data/coordinates3.json"
 
 
 width, height = (26, 26)
