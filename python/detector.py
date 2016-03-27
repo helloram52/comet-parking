@@ -13,9 +13,10 @@ imagePath = publidDir + "/dataset/resizedimage.png"
 jsonConfigFile = publidDir + "/data/coordinates.json"
 csvFilePath = publidDir + "/data/metrics0.csv"
 threshold = {
-	'0' :  0.355,
-	'1' : 3.3,
-	'2' : 0.5
+	0 :  0.355,
+	1 : 3.3,
+	2 : 0.5,
+	3 : 1
 }
 
 class ColorHistogram(object):
@@ -67,18 +68,16 @@ class ImageComparator(object):
 		print "\t\t--------------"
 		for method in xrange(4):
 			result = cv2.compareHist(self.referenceHistogram, inputImageHistogram, method)
-			methodDict[method].append({'id': method, 'result':round(result, 3)})
+			methodDict[method].append({'id': method, 'result': round(result, 3)})
 			print "Method {0}: {1}".format(method, result)
 
-        def compareDiff(self, referenceImage, inputImage):
-            grayscaleBackground = cv2.cvtColor(referenceImage, cv2.COLOR_RGB2GRAY)
-            grayscaleImage = cv2.cvtColor(inputImage, cv2.COLOR_RGB2GRAY)
-            diff = cv2.absdiff(grayscaleBackground, grayscaleImage)
-            return cv2.sumElems(diff)
+	def compareDiff(self, referenceImage, inputImage):
+		grayscaleBackground = cv2.cvtColor(referenceImage, cv2.COLOR_RGB2GRAY)
+		grayscaleImage = cv2.cvtColor(inputImage, cv2.COLOR_RGB2GRAY)
+		diff = cv2.absdiff(grayscaleBackground, grayscaleImage)
 
+		return cv2.sumElems(diff)
 
-
-		
 
 # Does img[y: y + h, x: x + w]
 def getPatchFromImage(image, x, y, w, h):
@@ -97,13 +96,10 @@ image = cv2.imread(imagePath, cv2.IMREAD_COLOR)
 #		[x2, y2],
 #		....
 #	],
-# 	'referencespaces' : [
-#		[x1, y1], # point(x,y) of the mouse selection which will be the midpoint of the reference patch
-#		[x2, y2],
-#		....
-#	]
-#	'patchwidth' : width,
-#	'patchheight' : height,
+#	'refX': x, # x-coordinate of the reference patch
+#	'refX': y, # y-coordinate of the reference patch
+#	'width' : width,
+#	'height' : height,
 # }
 
 datadict = defaultdict(dict)
@@ -115,6 +111,9 @@ methodDict = {
 	2 : [],
 	3 : [],
 }
+
+# A list that holds image for displaying accuracy for each method
+imageList = []
 
 with open(jsonConfigFile) as data_file:
 	coordinatesData = json.load(data_file)
@@ -128,22 +127,64 @@ with open(jsonConfigFile) as data_file:
 	})
 
 	index = 1
-        newDict = {}
+	newDict = {}
 	for parkingRow in coordinatesData['parkingspaces']:
 		patchImage = getPatchFromImage(image, parkingRow['x'], parkingRow['y'], width, height)
 		print "No: %d" % (index)
 		imageComparator.compare(patchImage, methodDict)
-                newDict[index] = imageComparator.compareDiff(referenceImage, patchImage)
+		newDict[index] = imageComparator.compareDiff(referenceImage, patchImage)
 
 		index += 1
 
-        for key in newDict:
-            print "No: " + str(key) + " " + str(newDict[key])
+	for key in newDict:
+		print "No: " + str(key) + " " + str(newDict[key])
 
 	for key in methodDict:
 		print "method: %d" %(key)
+
+		index = 0
+		imageListIndex = int(key)
+		imageList.append(image.copy())
+
+		cv2.circle(
+			imageList[imageListIndex], # image on whose circle has to be drawn
+			(coordinatesData['refX'], coordinatesData['refY']),	# center co-ordinates
+			15,	# radius
+			(255,255,0), # color of the circle
+			-1  # -1 thickness refers to fill the circle with the given color
+		)
+
 		for data in methodDict[key]:
 			print "{1},".format(data['id'], data['result']),
+			x = coordinatesData['parkingspaces'][index]['x']
+			y = coordinatesData['parkingspaces'][index]['y']
+			index += 1
+
+			# draws a circle filled in green if the value is above the threshold
+			# and in red otherwise
+			color = (0, 255, 0)
+			if(data['result'] < threshold[key]):
+				color = (0, 0, 255)
+
+			cv2.circle(
+				imageList[imageListIndex], # image on whose circle has to be drawn
+				(x, y),	# center co-ordinates
+				15,	# radius
+				color, # color of the circle
+				-1  # -1 thickness refers to fill the circle with the given color
+			)
+
+			# Puts the index in the center of the circle
+			cv2.putText(
+				imageList[imageListIndex], # Image on which the text has to be drawn
+				str(index), # text will be the index
+				(x,y), # co-ordinates
+				cv2.FONT_HERSHEY_SIMPLEX, # font type
+				1,	# font size or scale
+				(255,255,255), # color of the text
+				1 # thickness of the lines used to draw the text
+			)
+
 		print "------\n"
 
 cv2.namedWindow('image', cv2.WINDOW_NORMAL)
@@ -152,10 +193,9 @@ cv2.namedWindow('method 1', cv2.WINDOW_NORMAL)
 cv2.namedWindow('method 2', cv2.WINDOW_NORMAL)
 
 cv2.imshow('image', image)
-cv2.imshow('method 0', image)
-cv2.imshow('method 1', image)
-cv2.imshow('method 2', image)
-
+cv2.imshow('method 0', imageList[0])
+cv2.imshow('method 1',  imageList[1])
+cv2.imshow('method 2',  imageList[2])
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
