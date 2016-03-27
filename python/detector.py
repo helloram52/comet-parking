@@ -70,7 +70,15 @@ class ImageComparator(object):
 			methodDict[method].append({'id': method, 'result':round(result, 3)})
 			print "Method {0}: {1}".format(method, result)
 
-		print
+        def compareDiff(self, referenceImage, inputImage):
+            grayscaleBackground = cv2.cvtColor(referenceImage, cv2.COLOR_RGB2GRAY)
+            grayscaleImage = cv2.cvtColor(inputImage, cv2.COLOR_RGB2GRAY)
+            diff = cv2.absdiff(grayscaleBackground, grayscaleImage)
+            return cv2.sumElems(diff)
+
+
+
+		
 
 # Does img[y: y + h, x: x + w]
 def getPatchFromImage(image, x, y, w, h):
@@ -120,11 +128,17 @@ with open(jsonConfigFile) as data_file:
 	})
 
 	index = 1
+        newDict = {}
 	for parkingRow in coordinatesData['parkingspaces']:
 		patchImage = getPatchFromImage(image, parkingRow['x'], parkingRow['y'], width, height)
 		print "No: %d" % (index)
 		imageComparator.compare(patchImage, methodDict)
+                newDict[index] = imageComparator.compareDiff(referenceImage, patchImage)
+
 		index += 1
+
+        for key in newDict:
+            print "No: " + str(key) + " " + str(newDict[key])
 
 	for key in methodDict:
 		print "method: %d" %(key)
