@@ -65,18 +65,20 @@ class ImageComparator(object):
 			'image' : inputImage
 		}).getHueHistogram(self.minSaturation)
 
-		print "\t\t--------------"
+		#print "\t\t--------------"
 		for method in xrange(4):
 			result = cv2.compareHist(self.referenceHistogram, inputImageHistogram, method)
 			methodDict[method].append({'id': method, 'result': round(result, 3)})
-			print "Method {0}: {1}".format(method, result)
+			#print "Method {0}: {1}".format(method, result)
 
-	def compareDiff(self, referenceImage, inputImage):
-		grayscaleBackground = cv2.cvtColor(referenceImage, cv2.COLOR_RGB2GRAY)
+	def compareDiff(self, inputImage):
+		grayscaleBackground = cv2.cvtColor(self.referenceImage, cv2.COLOR_RGB2GRAY)
 		grayscaleImage = cv2.cvtColor(inputImage, cv2.COLOR_RGB2GRAY)
 		diff = cv2.absdiff(grayscaleBackground, grayscaleImage)
 
-		return cv2.sumElems(diff)
+ 		# return only the first index since sumElems outputs 4 channels and only the first one is
+ 		# filled for a grayscale image here.
+		return cv2.sumElems(diff)[0]
 
 
 # Does img[y: y + h, x: x + w]
@@ -112,6 +114,8 @@ methodDict = {
 	3 : [],
 }
 
+imageDiffList = []
+
 # A list that holds image for displaying accuracy for each method
 imageList = []
 
@@ -127,17 +131,21 @@ with open(jsonConfigFile) as data_file:
 	})
 
 	index = 1
-	newDict = {}
 	for parkingRow in coordinatesData['parkingspaces']:
 		patchImage = getPatchFromImage(image, parkingRow['x'], parkingRow['y'], width, height)
 		print "No: %d" % (index)
-		imageComparator.compare(patchImage, methodDict)
-		newDict[index] = imageComparator.compareDiff(referenceImage, patchImage)
 
+		imageComparator.compare(patchImage, methodDict)
+
+		imageDiffList.append(imageComparator.compareDiff(patchImage))
 		index += 1
 
-	for key in newDict:
-		print "No: " + str(key) + " " + str(newDict[key])
+	print "ImageDiff method:"
+	index = 1
+	for data in imageDiffList:
+		print "{0} {1}".format(index, str(data))
+		index += 1
+	print "------\n"
 
 	for key in methodDict:
 		print "method: %d" %(key)
@@ -155,7 +163,7 @@ with open(jsonConfigFile) as data_file:
 		)
 
 		for data in methodDict[key]:
-			print "{1},".format(data['id'], data['result']),
+			print "{0},".format(data['result']),
 			x = coordinatesData['parkingspaces'][index]['x']
 			y = coordinatesData['parkingspaces'][index]['y']
 			index += 1
@@ -187,15 +195,68 @@ with open(jsonConfigFile) as data_file:
 
 		print "------\n"
 
+	imageListIndex = len(imageList)
+	imageList.append(image.copy())
+	print "imagelist index: %d"%(len(imageList))
+	cv2.circle(
+		imageList[imageListIndex], # image on whose circle has to be drawn
+		(coordinatesData['refX'], coordinatesData['refY']),	# center co-ordinates
+		15,	# radius
+		(255,255,0), # color of the circle
+		-1  # -1 thickness refers to fill the circle with the given color
+	)
+
+	index = 0
+	for data in imageDiffList:
+		data = int(data)
+		x = coordinatesData['parkingspaces'][index]['x']
+		y = coordinatesData['parkingspaces'][index]['y']
+		
+
+		# draws a circle filled in green if the value is above the threshold
+		# and in red otherwise
+		color = None
+
+		print "{0}: {1}".format(index, data)
+		if(data > 15000):
+			color = (0, 0, 255)
+			print "\tmarking it red"
+		else:
+			color = (0, 255, 0)
+			print "\tmarking it green"
+
+		index += 1
+		cv2.circle(
+			imageList[imageListIndex], # image on whose circle has to be drawn
+			(x, y),	# center co-ordinates
+			15,	# radius
+			color, # color of the circle
+			-1  # -1 thickness refers to fill the circle with the given color
+		)
+
+		# Puts the index in the center of the circle
+		cv2.putText(
+			imageList[imageListIndex], # Image on which the text has to be drawn
+			str(index), # text will be the index
+			(x,y), # co-ordinates
+			cv2.FONT_HERSHEY_SIMPLEX, # font type
+			1,	# font size or scale
+			(255,255,255), # color of the text
+			1 # thickness of the lines used to draw the text
+		)
+
+
 cv2.namedWindow('image', cv2.WINDOW_NORMAL)
 cv2.namedWindow('method 0', cv2.WINDOW_NORMAL)
 cv2.namedWindow('method 1', cv2.WINDOW_NORMAL)
 cv2.namedWindow('method 2', cv2.WINDOW_NORMAL)
+cv2.namedWindow('method 3', cv2.WINDOW_NORMAL)
 
 cv2.imshow('image', image)
 cv2.imshow('method 0', imageList[0])
 cv2.imshow('method 1',  imageList[1])
 cv2.imshow('method 2',  imageList[2])
+cv2.imshow('Image diff',  imageList[4])
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
