@@ -11,7 +11,6 @@ from collections import defaultdict
 publidDir = os.path.abspath( os.getcwd() + '/public' )
 imagePath = publidDir + "/dataset/1.png"
 jsonConfigFile = publidDir + "/data/coordinates1.json"
-csvFilePath = publidDir + "/data/metrics1.csv"
 threshold = {
 	0 :  0.355,
 	1 : 3.3,
@@ -99,7 +98,7 @@ image = cv2.imread(imagePath, cv2.IMREAD_COLOR)
 #		....
 #	],
 #	'refX': x, # x-coordinate of the reference patch
-#	'refX': y, # y-coordinate of the reference patch
+#	'refY': y, # y-coordinate of the reference patch
 #	'width' : width,
 #	'height' : height,
 # }
@@ -144,10 +143,9 @@ with open(jsonConfigFile) as data_file:
 	index = 1
 	string=""
 	for data in imageDiffList:
-		string += str(data) + ","
-		#print "{0},".format(str(data))
-		index += 1	
-	print string
+		#print "{0} {1}".format(index, str(data))
+		print "{0},".format(str(data)),
+		index += 1
 	print "------\n"
 
 	for key in methodDict:
@@ -221,7 +219,7 @@ with open(jsonConfigFile) as data_file:
 		color = None
 
 		print "{0}: {1}".format(index, data)
-		if(data > 15000):
+		if(data > 9100):
 			color = (0, 0, 255)
 			print "\tmarking it red"
 		else:
@@ -250,15 +248,15 @@ with open(jsonConfigFile) as data_file:
 
 
 cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-cv2.namedWindow('method 0', cv2.WINDOW_NORMAL)
-cv2.namedWindow('method 1', cv2.WINDOW_NORMAL)
-cv2.namedWindow('method 2', cv2.WINDOW_NORMAL)
-cv2.namedWindow('method 3', cv2.WINDOW_NORMAL)
+#cv2.namedWindow('method 0', cv2.WINDOW_NORMAL)
+#cv2.namedWindow('method 1', cv2.WINDOW_NORMAL)
+#cv2.namedWindow('method 2', cv2.WINDOW_NORMAL)
+#cv2.namedWindow('method 3', cv2.WINDOW_NORMAL)
 
 cv2.imshow('image', image)
-cv2.imshow('method 0', imageList[0])
-cv2.imshow('method 1',  imageList[1])
-cv2.imshow('method 2',  imageList[2])
+#cv2.imshow('method 0', imageList[0])
+#cv2.imshow('method 1',  imageList[1])
+#cv2.imshow('method 2',  imageList[2])
 cv2.imshow('Image diff',  imageList[4])
 
 cv2.waitKey(0)
