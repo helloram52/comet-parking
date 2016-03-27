@@ -8,9 +8,9 @@ from pprint import pprint
 from collections import defaultdict
 
 
-publidDir = os.path.abspath( os.getcwd() + '/public' )
-imagePath = publidDir + "/dataset/1.png"
-jsonConfigFile = publidDir + "/data/coordinates1.json"
+publicdDir = os.path.abspath( os.getcwd() + '/public' )
+configFilePath = publicdDir + '/data/config.json'
+
 threshold = {
 	0 :  0.355,
 	1 : 3.3,
@@ -57,6 +57,7 @@ class ImageComparator(object):
 		self.referenceHistogram = args.get('referenceHistogram', ColorHistogram({
 			'image' : self.referenceImage
 		}).getHueHistogram(self.minSaturation))
+		self.grayscaleBackground = cv2.cvtColor(self.referenceImage, cv2.COLOR_BGR2GRAY)
 
 
 	def compare(self, inputImage, methodDict):
@@ -71,9 +72,8 @@ class ImageComparator(object):
 			#print "Method {0}: {1}".format(method, result)
 
 	def compareDiff(self, inputImage):
-		grayscaleBackground = cv2.cvtColor(self.referenceImage, cv2.COLOR_BGR2GRAY)
 		grayscaleImage = cv2.cvtColor(inputImage, cv2.COLOR_BGR2GRAY)
-		diff = cv2.absdiff(grayscaleBackground, grayscaleImage)
+		diff = cv2.absdiff(self.grayscaleBackground, grayscaleImage)
 
  		# return only the first index since sumElems outputs 4 channels and only the first one is
  		# filled for a grayscale image here.
@@ -85,8 +85,7 @@ def getPatchFromImage(image, x, y, w, h):
 	x, y = x-w/2, y+h/2
 	return image[y: y + h, x: x + w]
 
-image = cv2.imread(imagePath, cv2.IMREAD_COLOR)
-
+# image = cv2.imread(imagePath, cv2.IMREAD_COLOR)
 # Resize the image by exactly half
 # resizedImage = cv2.resize(img, (0, 0), fx=0.5, fy=0.5)
 
@@ -103,7 +102,7 @@ image = cv2.imread(imagePath, cv2.IMREAD_COLOR)
 #	'height' : height,
 # }
 
-datadict = defaultdict(dict)
+image = None
 imageComparator = None
 width, height = (0, 0)
 methodDict = {
@@ -113,151 +112,170 @@ methodDict = {
 	3 : [],
 }
 
-imageDiffList = []
+# Read the config file that is in the below format
+# [
+#	{
+#		'imagePath' : "/dataset/1.png",
+#		'jsonConfigFile' : "/data/coordinates1.json",
+#		'threshold' : 9100
+#	},
+#	....
+# ]
 
-# A list that holds image for displaying accuracy for each method
-imageList = []
+with open(configFilePath) as configDataFile:
+	configData = json.load(configDataFile)
+	print "dumps: {0}".format(json.dumps(configData))
+	imageIndex = 0
 
-with open(jsonConfigFile) as data_file:
-	coordinatesData = json.load(data_file)
+	for configRow in configData:
+		imagePath, coordinateJSONFile, threshold = (configRow['imagePath'], configRow['jsonConfigFile'], configRow['threshold'])
 
-	width, height = (coordinatesData['width'], coordinatesData['height'])
-	referenceImage = getPatchFromImage(image, coordinatesData['refX'], coordinatesData['refY'], width, height)
+		coordinateJSONFile = publicdDir + coordinateJSONFile
+		imagePath = publicdDir + imagePath
 
-	# load the reference image
-	imageComparator = ImageComparator({
-		'referenceImage' : referenceImage
-	})
+		image = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+		imageDiffList = []
 
-	index = 1
-	for parkingRow in coordinatesData['parkingspaces']:
-		patchImage = getPatchFromImage(image, parkingRow['x'], parkingRow['y'], width, height)
-		print "No: %d" % (index)
+		with open(coordinateJSONFile) as coordinateFile:
+			coordinatesData = json.load(coordinateFile)
 
-		imageComparator.compare(patchImage, methodDict)
+			width, height = (coordinatesData['width'], coordinatesData['height'])
+			referenceImage = getPatchFromImage(image, coordinatesData['refX'], coordinatesData['refY'], width, height)
 
-		imageDiffList.append(imageComparator.compareDiff(patchImage))
-		index += 1
+			# load the reference image
+			imageComparator = ImageComparator({
+				'referenceImage' : referenceImage
+			})
 
-	print "ImageDiff method:"
-	index = 1
-	string=""
-	for data in imageDiffList:
-		#print "{0} {1}".format(index, str(data))
-		print "{0},".format(str(data)),
-		index += 1
-	print "------\n"
+			index = 1
+			for parkingRow in coordinatesData['parkingspaces']:
+				patchImage = getPatchFromImage(image, parkingRow['x'], parkingRow['y'], width, height)
+#				print "No: %d" % (index)
+#
+#				imageComparator.compare(patchImage, methodDict)
+#
+				imageDiffList.append(imageComparator.compareDiff(patchImage))
+				index += 1
 
-	for key in methodDict:
-		print "method: %d" %(key)
+			print "ImageDiff method:"
+			index = 1
+			for data in imageDiffList:
+				#print "{0} {1}".format(index, str(data))
+				print "{0},".format(str(data)),
+				index += 1
+			print "------\n"
 
-		index = 0
-		imageListIndex = int(key)
-		imageList.append(image.copy())
+#			for key in methodDict:
+#				print "method: %d" %(key)
+#
+#				index = 0
+#				imageListIndex = int(key)
+#				imageList.append(image.copy())
+#
+#				cv2.circle(
+#					imageList[imageListIndex], # image on whose circle has to be drawn
+#					(coordinatesData['refX'], coordinatesData['refY']),	# center co-ordinates
+#					15,	# radius
+#					(255,255,0), # color of the circle
+#					-1  # -1 thickness refers to fill the circle with the given color
+#				)
+#
+#				for data in methodDict[key]:
+#					print "{0},".format(data['result']),
+#					x = coordinatesData['parkingspaces'][index]['x']
+#					y = coordinatesData['parkingspaces'][index]['y']
+#					index += 1
+#
+#					# draws a circle filled in green if the value is above the threshold
+#					# and in red otherwise
+#					color = (0, 255, 0)
+#					if(data['result'] < threshold[key]):
+#						color = (0, 0, 255)
+#
+#					cv2.circle(
+#						imageList[imageListIndex], # image on whose circle has to be drawn
+#						(x, y),	# center co-ordinates
+#						15,	# radius
+#						color, # color of the circle
+#						-1  # -1 thickness refers to fill the circle with the given color
+#					)
+#
+#					# Puts the index in the center of the circle
+#					cv2.putText(
+#						imageList[imageListIndex], # Image on which the text has to be drawn
+#						str(index), # text will be the index
+#						(x,y), # co-ordinates
+#						cv2.FONT_HERSHEY_SIMPLEX, # font type
+#						1,	# font size or scale
+#						(255,255,255), # color of the text
+#						1 # thickness of the lines used to draw the text
+#					)
+#
+#				print "------\n"
 
-		cv2.circle(
-			imageList[imageListIndex], # image on whose circle has to be drawn
-			(coordinatesData['refX'], coordinatesData['refY']),	# center co-ordinates
-			15,	# radius
-			(255,255,0), # color of the circle
-			-1  # -1 thickness refers to fill the circle with the given color
-		)
-
-		for data in methodDict[key]:
-			print "{0},".format(data['result']),
-			x = coordinatesData['parkingspaces'][index]['x']
-			y = coordinatesData['parkingspaces'][index]['y']
-			index += 1
-
-			# draws a circle filled in green if the value is above the threshold
-			# and in red otherwise
-			color = (0, 255, 0)
-			if(data['result'] < threshold[key]):
-				color = (0, 0, 255)
-
+			processedImage = image.copy()
 			cv2.circle(
-				imageList[imageListIndex], # image on whose circle has to be drawn
-				(x, y),	# center co-ordinates
-				15,	# radius
-				color, # color of the circle
+				processedImage, # image on whose circle has to be drawn
+				(coordinatesData['refX'], coordinatesData['refY']),	# center co-ordinates
+				12,	# radius
+				(255,255,0), # color of the circle
 				-1  # -1 thickness refers to fill the circle with the given color
 			)
 
-			# Puts the index in the center of the circle
-			cv2.putText(
-				imageList[imageListIndex], # Image on which the text has to be drawn
-				str(index), # text will be the index
-				(x,y), # co-ordinates
-				cv2.FONT_HERSHEY_SIMPLEX, # font type
-				1,	# font size or scale
-				(255,255,255), # color of the text
-				1 # thickness of the lines used to draw the text
-			)
+			index = 0
+			for data in imageDiffList:
+				data = int(data)
+				x = coordinatesData['parkingspaces'][index]['x']
+				y = coordinatesData['parkingspaces'][index]['y']
+				
 
-		print "------\n"
+				# draws a circle filled in green if the value is above the threshold
+				# and in red otherwise
+				color = None
 
-	imageListIndex = len(imageList)
-	imageList.append(image.copy())
-	print "imagelist index: %d"%(len(imageList))
-	cv2.circle(
-		imageList[imageListIndex], # image on whose circle has to be drawn
-		(coordinatesData['refX'], coordinatesData['refY']),	# center co-ordinates
-		12,	# radius
-		(255,255,0), # color of the circle
-		-1  # -1 thickness refers to fill the circle with the given color
-	)
+				print "{0}: {1}".format(index, data)
+				if(data > threshold):
+					color = (0, 0, 255)
+					print "\tmarking it red"
+				else:
+					color = (0, 255, 0)
+					print "\tmarking it green"
 
-	index = 0
-	for data in imageDiffList:
-		data = int(data)
-		x = coordinatesData['parkingspaces'][index]['x']
-		y = coordinatesData['parkingspaces'][index]['y']
-		
+				index += 1
+				cv2.circle(
+					processedImage, # image on whose circle has to be drawn
+					(x, y),	# center co-ordinates
+					12,	# radius
+					color, # color of the circle
+					-1  # -1 thickness refers to fill the circle with the given color
+				)
 
-		# draws a circle filled in green if the value is above the threshold
-		# and in red otherwise
-		color = None
+				# Puts the index in the center of the circle
+				cv2.putText(
+					processedImage, # Image on which the text has to be drawn
+					str(index), # text will be the index
+					(x,y), # co-ordinates
+					cv2.FONT_HERSHEY_SIMPLEX, # font type
+					0.7,	# font size or scale
+					(255,255,255), # color of the text
+					1 # thickness of the lines used to draw the text
+				)
 
-		print "{0}: {1}".format(index, data)
-		if(data > 9100):
-			color = (0, 0, 255)
-			print "\tmarking it red"
-		else:
-			color = (0, 255, 0)
-			print "\tmarking it green"
-
-		index += 1
-		cv2.circle(
-			imageList[imageListIndex], # image on whose circle has to be drawn
-			(x, y),	# center co-ordinates
-			12,	# radius
-			color, # color of the circle
-			-1  # -1 thickness refers to fill the circle with the given color
-		)
-
-		# Puts the index in the center of the circle
-		cv2.putText(
-			imageList[imageListIndex], # Image on which the text has to be drawn
-			str(index), # text will be the index
-			(x,y), # co-ordinates
-			cv2.FONT_HERSHEY_SIMPLEX, # font type
-			0.7,	# font size or scale
-			(255,255,255), # color of the text
-			1 # thickness of the lines used to draw the text
-		)
+			cv2.imshow('image' + str(imageIndex), processedImage)
+			imageIndex += 1
 
 
-cv2.namedWindow('image', cv2.WINDOW_NORMAL)
+#cv2.namedWindow('image', cv2.WINDOW_NORMAL)
 #cv2.namedWindow('method 0', cv2.WINDOW_NORMAL)
 #cv2.namedWindow('method 1', cv2.WINDOW_NORMAL)
 #cv2.namedWindow('method 2', cv2.WINDOW_NORMAL)
 #cv2.namedWindow('method 3', cv2.WINDOW_NORMAL)
 
-cv2.imshow('image', image)
+#cv2.imshow('image', image)
 #cv2.imshow('method 0', imageList[0])
 #cv2.imshow('method 1',  imageList[1])
 #cv2.imshow('method 2',  imageList[2])
-cv2.imshow('Image diff',  imageList[4])
+#cv2.imshow('Image diff',  imageList[4])
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()

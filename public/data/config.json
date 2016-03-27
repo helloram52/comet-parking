@@ -1,0 +1,20 @@
+[
+	{
+		"imagePath" : "/dataset/1.png",
+		"jsonConfigFile" : "/data/coordinates1.json",
+		"threshold" : 9100,
+		"globalIDStart" : 1
+	},
+	{
+		"imagePath" : "/dataset/2.png",
+		"jsonConfigFile" : "/data/coordinates2.json",
+		"threshold" : 9100,
+		"globalIDStart" : 56
+	},
+	{
+		"imagePath" : "/dataset/3.png",
+		"jsonConfigFile" : "/data/coordinates3.json",
+		"threshold" : 15800,
+		"globalIDStart" : 123
+	}
+]
